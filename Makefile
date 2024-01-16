@@ -1,8 +1,8 @@
 help:
-	$(info "")
-	$(info "Valid make targets are:")
-	$(info "  - uefi-x86-ovf : Outputs a zip file containing .vmx & .vmdk for uefi-x86 platform")
-	$(info "")
+	$(info )
+	$(info Valid make targets are:)
+	$(info   - uefi-x86-ovf : Outputs a zip file containing .vmx & .vmdk for uefi-x86 platform)
+	$(info )
 
 uefi-x86-ovf:
 	# Clone armbian/build repo if needed
