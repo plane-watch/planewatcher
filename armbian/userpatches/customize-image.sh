@@ -9,8 +9,10 @@ function deploy_from_git_repo() {(
     read -a DEPS <<< "$5"
     INSTALLFUNC="$6"
 
+    # prep array of build dependencies to remove after successful build
     BUILDDEPS_TO_REMOVE=()
 
+    # exit on error
     set -e
 
     # temporarily install build deps
@@ -41,13 +43,15 @@ function deploy_from_git_repo() {(
     done
     apt-get autoremove -y
 
-    # TODO: clean up: remove repo dir
+    # clean up
+    rm -rf "${CLONEDIR}"
     
 )}
 
 function build_rtlsdr ()
 {(
     set -e
+    ldconfig
     mkdir -p "$CLONEDIR"/build
     pushd "$CLONEDIR"/build
     LD_LIBRARY_PATH="/usr/include" cmake \
@@ -57,6 +61,18 @@ function build_rtlsdr ()
         -DENABLE_ZEROCOPY=ON
     make
     make install
+    ldconfig
+    popd
+)}
+
+function build_mictronics_readsb ()
+{(
+    set -e
+    ldconfig
+    pushd "$CLONEDIR"
+    make RTLSDR=yes HAVE_BIASTEE=yes
+    mkdir -p /opt/Mictronics/readsb
+    cp -v ./readsb.proto ./readsb ./readsbrrd ./viewadsb /opt/Mictronics/readsb
     ldconfig
     popd
 )}
@@ -74,9 +90,11 @@ deploy_from_git_repo \
     "" \
     build_rtlsdr
 
-# deploy mictronics readsb
-# BRANCH=v4.0.2
-# REPO=https://github.com/Mictronics/readsb-protobuf.git
-# CLONEDIR=/src/Mictronics/readsb-protobuf
-# BUILDDEPS=('build-essential' 'protobuf-c-compiler' 'libprotobuf-c-dev' 'librrd-dev' 'libncurses-dev')
-# DEPS=('libncurses6' 'libprotobuf-c1')
+# deploy Mictronics readsb-protobuf
+deploy_from_git_repo \
+    "v4.0.2" \
+    "https://github.com/Mictronics/readsb-protobuf.git" \
+    "/stc/Mictronics-readsb-protobuf" \
+    "build-essential git libncurses-dev libprotobuf-c-dev librrd-dev libusb-1.0-0-dev protobuf-c-compiler pkgconf" \
+    "libncurses6 libprotobuf-c1" \
+    build_mictronics_readsb
