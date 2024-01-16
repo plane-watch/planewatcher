@@ -61,15 +61,9 @@ function build_rtlsdr ()
     popd
 )}
 
+# ---------------------------------------------------------------------------
 
-
-
-# BRANCH=v4.0.2
-# REPO=https://github.com/Mictronics/readsb-protobuf.git
-# CLONEDIR=/src/Mictronics/readsb-protobuf
-# BUILDDEPS=('build-essential' 'protobuf-c-compiler' 'libprotobuf-c-dev' 'librrd-dev' 'libncurses-dev')
-# DEPS=('libncurses6' 'libprotobuf-c1')
-
+apt-get update -y
 
 # deploy rtl-sdr
 deploy_from_git_repo \
@@ -79,3 +73,10 @@ deploy_from_git_repo \
     "build-essential cmake git libusb-1.0-0-dev pkgconf" \
     "" \
     build_rtlsdr
+
+# deploy mictronics readsb
+# BRANCH=v4.0.2
+# REPO=https://github.com/Mictronics/readsb-protobuf.git
+# CLONEDIR=/src/Mictronics/readsb-protobuf
+# BUILDDEPS=('build-essential' 'protobuf-c-compiler' 'libprotobuf-c-dev' 'librrd-dev' 'libncurses-dev')
+# DEPS=('libncurses6' 'libprotobuf-c1')
