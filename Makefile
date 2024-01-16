@@ -14,4 +14,4 @@ uefi-x86-ovf:
 
 clean:
 	# Remove armbian/build
-	rm -r ./armbian-build
+	if [ -d "./armbian-build" ]; then rm -rf ./armbian-build; fi
