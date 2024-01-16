@@ -5,11 +5,11 @@ help:
 	$(info )
 
 uefi-x86-ovf:
-	# Clone armbian/build repo if needed
+	$(info Clone armbian/build repo if needed)
 	if [ ! -d "./armbian-build" ]; then git clone --depth=1 --branch=v23.11 https://github.com/armbian/build ./armbian-build; fi
-	# Copy armbian customisations
+	$(info Copy armbian customisations)
 	cp -Rv ./armbian/* ./armbian-build/
-	# Run armbian build
+	$(info Run armbian build)
 	cd ./armbian-build && ./compile.sh build BOARD=uefi-x86 ENABLE_EXTENSIONS=image-output-ovf planewatcher
 
 clean:
