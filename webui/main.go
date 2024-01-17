@@ -13,6 +13,8 @@ func main() {
 		panic(err)
 	}
 
-	fmt.Println(ll)
-
+	for _, l := range ll {
+		fmt.Println("attrs", *l.Attrs())
+		fmt.Println("type", l.Type)
+	}
 }
