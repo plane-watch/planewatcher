@@ -15,6 +15,6 @@ func main() {
 
 	for _, l := range ll {
 		fmt.Println("attrs", *l.Attrs())
-		fmt.Println("type", l.Type)
+		fmt.Println(fmt.Sprintf("type %s", l.Type()))
 	}
 }
