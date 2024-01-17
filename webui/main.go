@@ -20,7 +20,7 @@ func getNetworkDevices() ([]netlink.Link, error) {
 	llDevicesOnly := []netlink.Link{}
 	for _, l := range ll {
 		if l.Type() == "device" {
-			if l.Attrs().Flags|net.FlagLoopback != net.FlagLoopback {
+			if l.Attrs().Flags&net.FlagLoopback != net.FlagLoopback { // bitwise AND to check for loopback
 				llDevicesOnly = append(llDevicesOnly, l)
 			}
 		}
