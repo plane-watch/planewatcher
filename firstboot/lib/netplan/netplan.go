@@ -78,7 +78,7 @@ func Load(filename string) (Netplan, error) {
 func WriteDefaultConfig(filename string) error {
 
 	// open netlink file
-	f, err := os.Open(filename)
+	f, err := os.Create(filename)
 	if err != nil {
 		return err
 	}
