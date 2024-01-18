@@ -81,6 +81,16 @@ function build_mictronics_readsb ()
 
 apt-get update -y
 
+# switch from NetworkManager to systemd-networkd
+systemctl stop NetworkManager
+systemctl disable NetworkManager
+systemctl mask NetworkManager
+systemctl unmask systemd-networkd
+systemctl enable systemd-networkd
+
+# remove existing netplan configuration
+rm -v /etc/netplan/*.yml /etc/netplan/*.yaml
+
 # deploy rtl-sdr
 deploy_from_git_repo \
     "v2.0.1" \

@@ -2,6 +2,7 @@ package network
 
 import (
 	"net"
+	"os/exec"
 	"runtime"
 
 	"github.com/vishvananda/netlink"
@@ -43,4 +44,22 @@ func GetNetworkDevices() ([]netlink.Link, error) {
 
 	// return sanitised list
 	return llDevicesOnly, nil
+}
+
+// returns
+type ethIface struct {
+	// device name (eg: enp0s3)
+	device     string
+	macaddr    net.HardwareAddr
+	mtu        uint
+	connection string
+}
+
+func GetDeviceInfoFromNM(devName string) error {
+	c := exec.Command("nmcli", "device", "show", devName)
+	err := c.Run()
+	if err != nil {
+		return err
+	}
+
 }
