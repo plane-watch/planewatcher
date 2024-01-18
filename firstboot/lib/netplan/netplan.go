@@ -51,8 +51,8 @@ type Nameservers struct {
 	Addresses []string `yaml:"addresses,omitempty,flow"`
 }
 
-func Load(file string) (Netplan, error) {
-	f, err := os.Open(file)
+func Load(filename string) (Netplan, error) {
+	f, err := os.Open(filename)
 	if err != nil {
 		return Netplan{}, err
 	}
@@ -74,19 +74,33 @@ func Load(file string) (Netplan, error) {
 	return np, err
 }
 
-func WriteDefaultConfig() error {
+// WriteDefaultConfig writes a default netplan yaml config with dchp4 enabled for all detected interfaces
+func WriteDefaultConfig(filename string) error {
 
+	// open netlink file
+	f, err := os.Open(filename)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+
+	// prep vars
 	yes := true
 	eths := make(map[string]Ethernet)
 
+	// get ip link list
 	ll, err := netlink.LinkList()
 	if err != nil {
 		return err
 	}
 
+	// for each link...
 	for _, l := range ll {
+		// if device (as opposed to bridge etc)
 		if l.Type() == "device" {
+			// if not loopback
 			if !(l.Attrs().Flags&net.FlagLoopback == net.FlagLoopback) {
+				// add interface
 				eths[l.Attrs().Name] = Ethernet{
 					Interface: Interface{
 						DHCP4: &yes,
@@ -96,6 +110,7 @@ func WriteDefaultConfig() error {
 		}
 	}
 
+	// prep netplan obj for marshalling to yaml
 	np := Netplan{
 		Network: Network{
 			Version:   2,
@@ -104,12 +119,17 @@ func WriteDefaultConfig() error {
 		},
 	}
 
+	// marshall netplan obj to yaml
 	out, err := yaml.Marshal(&np)
 	if err != nil {
 		return err
 	}
 
-	fmt.Println(string(out))
+	// write output
+	_, err = f.Write(out)
+	if err != nil {
+		return err
+	}
 
 	return nil
 }

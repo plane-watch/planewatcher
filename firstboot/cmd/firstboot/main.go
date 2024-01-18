@@ -2,7 +2,6 @@ package main
 
 import (
 	"firstboot/lib/netplan"
-	"fmt"
 	"os"
 )
 
@@ -21,19 +20,10 @@ func fileExists(filename string) bool {
 func main() {
 
 	// check if netplan file exists
-	// if ! fileExists(netplanFile) {
-
-	// }
-
-	err := netplan.WriteDefaultConfig()
-	if err != nil {
-		panic(err)
+	if !fileExists(netplanFile) {
+		err := netplan.WriteDefaultConfig(netplanFile)
+		if err != nil {
+			panic(err)
+		}
 	}
-
-	np, err := netplan.Load(netplanFile)
-	if err != nil {
-		panic(err)
-	}
-	fmt.Println(np)
-
 }
