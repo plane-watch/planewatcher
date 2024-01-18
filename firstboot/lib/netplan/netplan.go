@@ -2,6 +2,7 @@ package netplan
 
 import (
 	"fmt"
+	"io"
 	"os"
 
 	"gopkg.in/yaml.v2"
@@ -55,9 +56,7 @@ func Load(file string) (Netplan, error) {
 		return Netplan{}, err
 	}
 
-	var b []byte
-
-	_, err = f.Read(b)
+	b, err := io.ReadAll(f)
 	if err != nil {
 		return Netplan{}, err
 	}
