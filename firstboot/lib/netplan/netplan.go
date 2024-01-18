@@ -3,8 +3,10 @@ package netplan
 import (
 	"fmt"
 	"io"
+	"net"
 	"os"
 
+	"github.com/vishvananda/netlink"
 	"gopkg.in/yaml.v2"
 )
 
@@ -70,4 +72,44 @@ func Load(file string) (Netplan, error) {
 	}
 
 	return np, err
+}
+
+func WriteDefaultConfig() error {
+
+	yes := true
+	eths := make(map[string]Ethernet)
+
+	ll, err := netlink.LinkList()
+	if err != nil {
+		return err
+	}
+
+	for _, l := range ll {
+		if l.Type() == "device" {
+			if !(l.Attrs().Flags&net.FlagLoopback == net.FlagLoopback) {
+				eths[l.Attrs().Name] = Ethernet{
+					Interface: Interface{
+						DHCP4: &yes,
+					},
+				}
+			}
+		}
+	}
+
+	np := Netplan{
+		Network: Network{
+			Version:   2,
+			Renderer:  "networkd",
+			Ethernets: eths,
+		},
+	}
+
+	out, err := yaml.Marshal(&np)
+	if err != nil {
+		return err
+	}
+
+	fmt.Println(string(out))
+
+	return nil
 }
