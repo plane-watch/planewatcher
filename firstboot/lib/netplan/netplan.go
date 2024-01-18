@@ -64,7 +64,7 @@ func Load(file string) (Netplan, error) {
 
 	np := Netplan{}
 
-	err = yaml.Unmarshal(b, np)
+	err = yaml.Unmarshal(b, &np)
 	if err != nil {
 		return Netplan{}, err
 	}
