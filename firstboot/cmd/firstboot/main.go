@@ -1,9 +1,16 @@
 package main
 
-import "firstboot/lib/netplan"
+import (
+	"firstboot/lib/netplan"
+	"fmt"
+)
 
 func main() {
 
-	netplan.Load()
+	np, err := netplan.Load("/etc/netplan/planewatcher.yaml")
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println(np)
 
 }
