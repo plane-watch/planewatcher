@@ -30,7 +30,6 @@ type Interface struct {
 	Gateway4    string      `yaml:"gateway4,omitempty"`
 	Nameservers Nameservers `yaml:"nameservers,omitempty"`
 	MTU         int         `yaml:"mtu,omitempty"`
-	Renderer    string      `yaml:"renderer,omitempty"` // NetworkManager or networkd
 	Routes      []Route     `yaml:"routes,omitempty"`
 }
 
