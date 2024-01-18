@@ -1,6 +1,7 @@
 package netplan
 
 import (
+	"fmt"
 	"os"
 
 	"gopkg.in/yaml.v2"
@@ -60,6 +61,8 @@ func Load(file string) (Netplan, error) {
 	if err != nil {
 		return Netplan{}, err
 	}
+
+	fmt.Println(string(b))
 
 	np := Netplan{}
 
