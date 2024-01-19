@@ -79,7 +79,9 @@ function build_mictronics_readsb ()
 
 # ---------------------------------------------------------------------------
 
+# install prerequisites
 apt-get update -y
+apt-get install --no-install-recommends -y isc-dhcp-client
 
 # switch from NetworkManager to systemd-networkd
 systemctl stop NetworkManager
