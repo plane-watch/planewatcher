@@ -30,6 +30,7 @@ func main() {
 
 	// check if netplan file exists
 	if !fileExists(netplanFile) {
+		log.Debug().Str("netplan_config", netplanFile).Msg("generating firstrun config")
 		err := netplan.DefaultConfig(netplanFile)
 		if err != nil {
 			panic(err)

@@ -180,21 +180,23 @@ func ApplyImmediate() error {
 		return err
 	}
 
+	log := log.
+		With().
+		Str("stdout", string(bStdout)).
+		Str("stderr", string(bStderr)).
+		Logger()
+
 	// wait for execution to finish
 	err = c.Wait()
 	if err != nil {
 		log.
 			Err(err).
-			Str("stdout", string(bStdout)).
-			Str("stderr", string(bStderr)).
 			Msg("error running netplan apply")
 		return err
 	}
 
 	log.
 		Debug().
-		Str("stdout", string(bStdout)).
-		Str("stderr", string(bStderr)).
 		Msg("ran netplan apply")
 
 	return nil
