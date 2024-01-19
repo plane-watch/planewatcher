@@ -2,7 +2,11 @@ package main
 
 import (
 	"firstboot/lib/netplan"
+	"fmt"
+	"io"
 	"os"
+	"os/exec"
+	"time"
 )
 
 const (
@@ -25,5 +29,32 @@ func main() {
 		if err != nil {
 			panic(err)
 		}
+		c := exec.Command("netplan", "try")
+		err = c.Start()
+		if err != nil {
+			panic(err)
+		}
+		time.Sleep(5 * time.Second)
+		stdin, err := c.StdinPipe()
+		if err != nil {
+			panic(err)
+		}
+		_, err = stdin.Write([]byte("\n"))
+		if err != nil {
+			panic(err)
+		}
+		err = c.Wait()
+		if err != nil {
+			panic(err)
+		}
+		stdout, err := c.StdoutPipe()
+		if err != nil {
+			panic(err)
+		}
+		b, err := io.ReadAll(stdout)
+		if err != nil {
+			panic(err)
+		}
+		fmt.Println(string(b))
 	}
 }
