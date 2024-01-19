@@ -131,5 +131,11 @@ func WriteDefaultConfig(filename string) error {
 		return err
 	}
 
+	// chmod
+	err = os.Chmod(filename, 0600)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
