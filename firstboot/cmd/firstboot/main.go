@@ -49,14 +49,15 @@ func main() {
 		if err != nil {
 			panic(err)
 		}
-		err = c.Wait()
-		if err != nil {
-			panic(err)
-		}
 		b, err := io.ReadAll(stdout)
 		if err != nil {
 			panic(err)
 		}
+		err = c.Wait()
+		if err != nil {
+			panic(err)
+		}
+
 		fmt.Println(string(b))
 	}
 }
