@@ -29,25 +29,27 @@ func main() {
 		if err != nil {
 			panic(err)
 		}
+
 		c := exec.Command("netplan", "try")
+		stdin, err := c.StdinPipe()
+		if err != nil {
+			panic(err)
+		}
+		stdout, err := c.StdoutPipe()
+		if err != nil {
+			panic(err)
+		}
+
 		err = c.Start()
 		if err != nil {
 			panic(err)
 		}
 		time.Sleep(5 * time.Second)
-		stdin, err := c.StdinPipe()
-		if err != nil {
-			panic(err)
-		}
 		_, err = stdin.Write([]byte("\n"))
 		if err != nil {
 			panic(err)
 		}
 		err = c.Wait()
-		if err != nil {
-			panic(err)
-		}
-		stdout, err := c.StdoutPipe()
 		if err != nil {
 			panic(err)
 		}
