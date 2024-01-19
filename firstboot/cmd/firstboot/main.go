@@ -1,12 +1,13 @@
 package main
 
 import (
-	"firstboot/lib/netplan"
-	"fmt"
-	"io"
 	"os"
-	"os/exec"
 	"time"
+
+	"firstboot/lib/netplan"
+
+	"github.com/rs/zerolog"
+	"github.com/rs/zerolog/log"
 )
 
 const (
@@ -23,41 +24,15 @@ func fileExists(filename string) bool {
 
 func main() {
 
+	// set up logging
+	log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr, TimeFormat: time.UnixDate})
+	zerolog.SetGlobalLevel(zerolog.DebugLevel)
+
 	// check if netplan file exists
 	if !fileExists(netplanFile) {
-		err := netplan.WriteDefaultConfig(netplanFile)
+		err := netplan.DefaultConfig(netplanFile)
 		if err != nil {
 			panic(err)
 		}
-
-		c := exec.Command("netplan", "try")
-		stdin, err := c.StdinPipe()
-		if err != nil {
-			panic(err)
-		}
-		stdout, err := c.StdoutPipe()
-		if err != nil {
-			panic(err)
-		}
-
-		err = c.Start()
-		if err != nil {
-			panic(err)
-		}
-		time.Sleep(5 * time.Second)
-		_, err = stdin.Write([]byte("\n"))
-		if err != nil {
-			panic(err)
-		}
-		b, err := io.ReadAll(stdout)
-		if err != nil {
-			panic(err)
-		}
-		err = c.Wait()
-		if err != nil {
-			panic(err)
-		}
-
-		fmt.Println(string(b))
 	}
 }

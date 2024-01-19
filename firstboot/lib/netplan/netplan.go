@@ -5,7 +5,9 @@ import (
 	"io"
 	"net"
 	"os"
+	"os/exec"
 
+	"github.com/rs/zerolog/log"
 	"github.com/vishvananda/netlink"
 	"gopkg.in/yaml.v2"
 )
@@ -75,7 +77,7 @@ func Load(filename string) (Netplan, error) {
 }
 
 // WriteDefaultConfig writes a default netplan yaml config with dchp4 enabled for all detected interfaces
-func WriteDefaultConfig(filename string) error {
+func DefaultConfig(filename string) error {
 
 	// open netlink file
 	f, err := os.Create(filename)
@@ -137,5 +139,91 @@ func WriteDefaultConfig(filename string) error {
 		return err
 	}
 
+	// apply
+	err = ApplyImmediate()
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
+
+// ApplyImmediate runs `netplan apply`
+func ApplyImmediate() error {
+
+	// prepare command
+	c := exec.Command("netplan", "apply")
+
+	// prepare stdout & stderr
+	stderr, err := c.StderrPipe()
+	if err != nil {
+		return err
+	}
+	stdout, err := c.StdoutPipe()
+	if err != nil {
+		return err
+	}
+
+	// start process
+	err = c.Start()
+	if err != nil {
+		return err
+	}
+
+	// read stdout & stderr
+	bStdout, err := io.ReadAll(stdout)
+	if err != nil {
+		return err
+	}
+	bStderr, err := io.ReadAll(stderr)
+	if err != nil {
+		return err
+	}
+
+	// wait for execution to finish
+	err = c.Wait()
+	if err != nil {
+		log.
+			Err(err).
+			Str("stdout", string(bStdout)).
+			Str("stderr", string(bStderr)).
+			Msg("error running netplan apply")
+		return err
+	}
+
+	log.
+		Debug().
+		Str("stdout", string(bStdout)).
+		Str("stderr", string(bStderr)).
+		Msg("ran netplan apply")
+
+	return nil
+}
+
+// c := exec.Command("netplan", "try")
+// stdin, err := c.StdinPipe()
+// if err != nil {
+// 	panic(err)
+// }
+// stdout, err := c.StdoutPipe()
+// if err != nil {
+// 	panic(err)
+// }
+
+// err = c.Start()
+// if err != nil {
+// 	panic(err)
+// }
+// time.Sleep(5 * time.Second)
+// _, err = stdin.Write([]byte("\n"))
+// if err != nil {
+// 	panic(err)
+// }
+// b, err := io.ReadAll(stdout)
+// if err != nil {
+// 	panic(err)
+// }
+// err = c.Wait()
+// if err != nil {
+// 	panic(err)
+// }
