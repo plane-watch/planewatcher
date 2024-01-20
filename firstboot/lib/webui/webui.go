@@ -96,14 +96,15 @@ func handleNetworkConfig(w http.ResponseWriter, r *http.Request) {
 		// get def gw
 		var gw string
 		_, defroute, err := net.ParseCIDR("0.0.0.0/0")
-		routes, err := netlink.RouteList(&netlink.GenericLink{}, unix.AF_INET)
+		routes, err := netlink.RouteList(l, unix.AF_INET)
 		if err != nil {
 			log.Err(err).Msg("too many ipv4 addresses returned from netlink for interface")
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
 		for _, route := range routes {
-			fmt.Println(route.Dst.String())
+			fmt.Println(route)
+			fmt.Println(route.Dst.String(), route.Gw.String())
 			if route.Dst == defroute {
 				gw = route.Gw.String()
 			}
