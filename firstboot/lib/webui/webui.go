@@ -57,7 +57,7 @@ func handleIndex(w http.ResponseWriter, r *http.Request) {
 		Str("method", r.Method).
 		Logger()
 
-	err = tmplNetwork.Execute(w, nil)
+	err = tmplIndex.Execute(w, nil)
 	if err != nil {
 		log.Err(err).Msg("error executing template")
 		w.WriteHeader(http.StatusInternalServerError)
