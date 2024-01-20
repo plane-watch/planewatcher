@@ -5,15 +5,15 @@
 <h2>Network Config</h2>
 
 <form>
-  {{ range $iface_name, $iface_config := .Network.Ethernets }}
+  {{ range $if_name, $if_config := .Network.Ethernets }}
   <fieldset>
-    <label>Interface: {{ $iface_name }}</label><br>
+    <label>Interface: {{ $if_name }}</label><br>
 
       <fieldset>
         <label>IPv4</label><br>
-        <input type="radio" id="dhcpv4" name="ipv4.method" value="DHCP">
+        <input type="radio" id="dhcpv4" name="ipv4.method" value="DHCP"{{ if $if_config.DHCP4 }} checked="checked"{{end}}>
         <label for="dhcpv4">DHCP</label><br>
-        <input type="radio" id="manualv4" name="ipv4.method" value="Manual">
+        <input type="radio" id="manualv4" name="ipv4.method" value="Manual"{{ if not $if_config.DHCP4 }} checked="checked"{{end}}>
         <label for="manualv4">Manual</label><br>
 
         <label for="ipv4addr">Address</label>
