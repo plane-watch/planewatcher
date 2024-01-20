@@ -7,6 +7,9 @@
 <a href="/">Back to main menu</a>
 
   {{ range $if_name, $if_config := .Netplan.Network.Ethernets }}
+
+<p>{{with (index $.Interface $if_name)}}{{.DHCPv4}}{{end}}</p>
+
   <fieldset>
     <form action="/network" method="post">
       <label>Interface: {{ $if_name }}</label><br>
