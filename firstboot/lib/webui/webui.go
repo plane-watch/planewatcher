@@ -97,6 +97,18 @@ func handleNetworkPOST(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// generate netplan yaml
+	np, err := netplan.Load(netplanFile)
+	if err != nil {
+		log.Err(err).Msg("error loading netplan yaml")
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	// determine interface to update
+	if r.PostForm.Has("iface") {
+		fmt.Println("iface", r.PostForm.Get("iface"))
+	}
+
 	if r.PostForm.Has("ipv4.method") {
 		fmt.Println("ipv4.method", r.PostForm.Get("ipv4.method"))
 	}

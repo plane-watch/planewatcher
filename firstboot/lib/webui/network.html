@@ -6,11 +6,11 @@
 
 <a href="/">Back to main menu</a>
 
-<form action="/network" method="post">
   {{ range $if_name, $if_config := .Netplan.Network.Ethernets }}
   <fieldset>
-    <label>Interface: {{ $if_name }}</label><br>
-
+    <form action="/network" method="post">
+      <label>Interface: {{ $if_name }}</label><br>
+      <input type="hidden" id="iface" name="iface" value="{{ $if_name }}">
       <fieldset>
         <label>IPv4</label><br>
         <input type="radio" id="dhcpv4" name="ipv4.method" value="DHCP"{{ if $if_config.DHCP4 }} checked="checked"{{end}}>
@@ -26,9 +26,9 @@
         <input type="text" id="ipv4gw" name="ipv4.gateway" value="{{with (index $.Interface $if_name)}}{{.IPv4Gateway}}{{end}}"><br>
 
       </fieldset>
+      <input type="submit" value="Update {{ $if_name }} configuration">
+    </form>
   </fieldset>
   {{ end }}
-  <input type="submit" value="Submit">
-</form>
 </body>
 </html>
