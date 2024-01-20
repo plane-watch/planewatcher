@@ -160,6 +160,7 @@ func ApplyImmediate() error {
 
 	// prepare command
 	c := exec.Command("netplan", "apply")
+	log := log.With().Str("cmd", c.String()).Logger()
 
 	// prepare stdout & stderr
 	stderr, err := c.StderrPipe()
@@ -176,36 +177,29 @@ func ApplyImmediate() error {
 	if err != nil {
 		return err
 	}
+	log = log.With().Int("pid", c.Process.Pid).Logger()
 
-	// read stdout & stderr
+	// read stdout
 	bStdout, err := io.ReadAll(stdout)
 	if err != nil {
 		return err
 	}
+	log = log.With().Str("stdout", string(bStdout)).Logger()
+
+	// read stderr
 	bStderr, err := io.ReadAll(stderr)
 	if err != nil {
 		return err
 	}
-
-	log := log.
-		With().
-		Str("stdout", string(bStdout)).
-		Str("stderr", string(bStderr)).
-		Logger()
+	log = log.With().Str("stderr", string(bStderr)).Logger()
 
 	// wait for execution to finish
 	err = c.Wait()
 	if err != nil {
-		log.
-			Err(err).
-			Msg("error running netplan apply")
+		log.Err(err).Msg("error running netplan apply")
 		return err
 	}
-
-	log.
-		Debug().
-		Msg("ran netplan apply")
-
+	log.Debug().Msg("ran netplan apply")
 	return nil
 }
 
@@ -259,7 +253,7 @@ func ApplyWithConfirmation(timeoutSecs uint) (confirmFunc func() error) {
 		// prepare command
 		c := exec.Command("netplan", "try", "--timeout", fmt.Sprintf("%d", timeoutSecs))
 		log := log.With().Str("cmd", c.String()).Logger()
-		log.Debug().Msg("preparing to run process")
+		log.Debug().Msg("preparing to run command")
 
 		// prepare stdin, stdout & stderr
 		stdin, err := c.StdinPipe()
@@ -287,11 +281,12 @@ func ApplyWithConfirmation(timeoutSecs uint) (confirmFunc func() error) {
 		// start process
 		err = c.Start()
 		if err != nil {
-			log.Err(err).Msg("error starting process")
+			log.Err(err).Msg("error starting command")
 			o.err = err
 			outputChan <- o
 			return
 		}
+		log = log.With().Int("pid", c.Process.Pid).Logger()
 
 		// wait for confirmation or timeout
 		select {
@@ -366,13 +361,13 @@ func ApplyWithConfirmation(timeoutSecs uint) (confirmFunc func() error) {
 		// wait for execution to finish
 		err = c.Wait()
 		if err != nil {
-			log.Err(err).Msg("error running process")
+			log.Err(err).Msg("error running command")
 			o.err = err
 			outputChan <- o
 			return
 		}
 
-		log.Debug().Msg("ran process")
+		log.Debug().Msg("ran command")
 		o.err = nil
 		outputChan <- o
 	}()
