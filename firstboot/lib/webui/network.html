@@ -6,7 +6,7 @@
 
 <a href="/">Back to main menu</a>
 
-<form action="/" method="post">
+<form action="/network" method="post">
   {{ range $if_name, $if_config := .Netplan.Network.Ethernets }}
   <fieldset>
     <label>Interface: {{ $if_name }}</label><br>

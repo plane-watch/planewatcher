@@ -4,6 +4,7 @@ import (
 	_ "embed"
 	"encoding/hex"
 	"firstboot/lib/netplan"
+	"fmt"
 	"html/template"
 	"net"
 	"net/http"
@@ -68,6 +69,36 @@ func handleIndex(w http.ResponseWriter, r *http.Request) {
 }
 
 func handleNetwork(w http.ResponseWriter, r *http.Request) {
+	switch r.Method {
+	case http.MethodPost:
+		handleNetworkPOST(w, r)
+	case http.MethodGet:
+		handleNetworkGET(w, r)
+	}
+}
+
+func handleNetworkPOST(w http.ResponseWriter, r *http.Request) {
+	// var err error
+
+	reqTime := time.Now()
+
+	log := log.With().
+		Str("netplan_yaml", netplanFile).
+		Str("uri", r.RequestURI).
+		Str("src", r.RemoteAddr).
+		Str("method", r.Method).
+		Logger()
+
+	// generate netplan yaml
+	if r.Form.Has("ipv4.method") {
+		fmt.Println("ipv4.method", r.Form.Get("ipv4.method"))
+	}
+
+	log.Debug().TimeDiff("rtt", time.Now(), reqTime).Msg("webui request")
+
+}
+
+func handleNetworkGET(w http.ResponseWriter, r *http.Request) {
 	var err error
 
 	reqTime := time.Now()
