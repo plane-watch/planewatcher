@@ -200,7 +200,10 @@ func handleNetworkPOST(w http.ResponseWriter, r *http.Request) {
 			},
 		}
 
-		// TODO: DNS
+		newIntConf.Nameservers = netplan.Nameservers{
+			Search:    strings.Fields(r.PostForm.Get("searchlist")),
+			Addresses: strings.Fields(r.PostForm.Get("nameservers")),
+		}
 
 	default:
 		log.Err(err).Msg("unknown ipv4.method")
