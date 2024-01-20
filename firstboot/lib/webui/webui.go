@@ -42,7 +42,14 @@ type WebUI struct {
 func handleNetworkConfig(w http.ResponseWriter, r *http.Request) {
 	var err error
 
-	log := log.With().Str("netplan_yaml", netplanFile).Logger()
+	log := log.With().
+		Str("netplan_yaml", netplanFile).
+		Str("uri", r.RequestURI).
+		Str("src", r.RemoteAddr).
+		Str("method", r.Method).
+		Logger()
+
+	log.Debug().Msg("webui access")
 
 	// prep network config
 	nc := networkConfig{}
