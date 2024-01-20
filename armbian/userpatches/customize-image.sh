@@ -79,6 +79,18 @@ function build_mictronics_readsb ()
 
 # ---------------------------------------------------------------------------
 
+# set hostname
+hostnamectl set-hostname pw
+(
+    echo "127.0.0.1    localhost"
+    echo "127.0.1.1    pw"
+    echo "::1          localhost pw ip6-localhost ip6-loopback"
+    echo "fe00::0      ip6-localnet"
+    echo "ff00::0      ip6-mcastprefix"
+    echo "ff02::1      ip6-allnodes"
+    echo "ff02::2      ip6-allrouters"
+) > /etc/hosts
+
 # install prerequisites
 apt-get update -y
 apt-get install --no-install-recommends -y isc-dhcp-client
