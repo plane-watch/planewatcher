@@ -53,6 +53,7 @@ type networkConfig struct {
 
 type netiface struct {
 	IPv4Addr, IPv4Mask, IPv4Gateway string
+	DHCPv4                          bool
 }
 
 // defines the configuration for the Web UI service
@@ -329,12 +330,22 @@ func handleNetworkGET(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 
-		// add interface details
-		nc.Interface[iface] = netiface{
+		// prep interface
+		nif := netiface{
 			IPv4Addr:    addrs[0].IP.String(),
 			IPv4Mask:    mask,
 			IPv4Gateway: gw,
 		}
+
+		// dhcp
+		if nc.Netplan.Network.Ethernets[iface].DHCP4 == &netplan.True {
+			nif.DHCPv4 = true
+		} else {
+			nif.DHCPv4 = false
+		}
+
+		// add interface details
+		nc.Interface[iface] = nif
 
 	}
 
