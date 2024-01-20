@@ -5,7 +5,7 @@
 <h2>Network Config</h2>
 
 <form>
-  {{ range $if_name, $if_config := .Network.Ethernets }}
+  {{ range $if_name, $if_config := .Netplan.Network.Ethernets }}
   <fieldset>
     <label>Interface: {{ $if_name }}</label><br>
 
@@ -17,11 +17,11 @@
         <label for="manualv4">Manual</label><br>
 
         <label for="ipv4addr">Address</label>
-        <input type="text" id="ipv4addr" name="ipv4.address" value="10.0.0.1"><br>
+        <input type="text" id="ipv4addr" name="ipv4.address" value="{{with (index .Interface $if_name)}}{{.ipv4addr}}{{end}}"><br>
         <label for="ipv4mask">Netmask</label>
-        <input type="text" id="ipv4mask" name="ipv4.netmask" value="255.255.255.0"><br>
+        <input type="text" id="ipv4mask" name="ipv4.netmask" value="{{with (index .Interface $if_name)}}{{.ipv4mask}}{{end}}"><br>
         <label for="ipv4gw">Gateway</label>
-        <input type="text" id="ipv4gw" name="ipv4.gateway" value="10.0.0.254"><br>
+        <input type="text" id="ipv4gw" name="ipv4.gateway" value="{{with (index .Interface $if_name)}}{{.ipv4gw}}{{end}}"><br>
 
       </fieldset>
   </fieldset>

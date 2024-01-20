@@ -46,7 +46,7 @@ func main() {
 	// 	panic(err)
 	// }
 
-	webUI := webui.WebUIConfig{
+	webUI := webui.WebUI{
 		ListenAddr:  ":80",
 		NetplanFile: netplanFile,
 	}
