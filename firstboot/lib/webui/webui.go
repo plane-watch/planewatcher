@@ -92,7 +92,7 @@ func handleNetworkConfig(w http.ResponseWriter, r *http.Request) {
 		d, _ := hex.DecodeString(addrs[0].Mask.String()[6:])
 		mask := net.IPv4(a[0], b[0], c[0], d[0]).String()
 
-		// get def gw
+		// get routes for interface
 		var gw string
 		routes, err := netlink.RouteList(l, unix.AF_INET)
 		if err != nil {
@@ -100,9 +100,11 @@ func handleNetworkConfig(w http.ResponseWriter, r *http.Request) {
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
+		// find default gw in route list
 		for _, route := range routes {
 			if route.Dst == nil && route.Gw != nil {
 				gw = route.Gw.String()
+				break
 			}
 		}
 
