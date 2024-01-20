@@ -4,7 +4,6 @@ import (
 	_ "embed"
 	"encoding/hex"
 	"firstboot/lib/netplan"
-	"fmt"
 	"html/template"
 	"net"
 	"net/http"
@@ -102,8 +101,6 @@ func handleNetworkConfig(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		for _, route := range routes {
-			fmt.Println(route)
-			fmt.Println(route.Dst.String(), route.Gw.String())
 			if route.Dst == nil && route.Gw != nil {
 				gw = route.Gw.String()
 			}
