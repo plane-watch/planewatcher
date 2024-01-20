@@ -2,11 +2,12 @@
 <html>
 <body>
 
-<h2>Text input fields</h2>
+<h2>Network Config</h2>
 
 <form>
+  {{ range $iface_name, $iface_config := .Ethernets }}
   <fieldset>
-    <label>Interface: xxxx</label><br>
+    <label>Interface: {{ $iface_name }}</label><br>
 
       <fieldset>
         <label>IPv4</label><br>
@@ -24,6 +25,7 @@
 
       </fieldset>
   </fieldset>
+  {{ end }}
 </form>
 
 <p>Note that the form itself is not visible.</p>

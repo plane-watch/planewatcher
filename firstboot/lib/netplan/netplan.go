@@ -62,26 +62,28 @@ var (
 
 // Load loads a netplan yaml file into a Netplan struct
 func Load(filename string) (Netplan, error) {
+
+	// open netplan yaml file
 	f, err := os.Open(filename)
 	if err != nil {
 		return Netplan{}, err
 	}
 
+	// read netplan yaml file
 	b, err := io.ReadAll(f)
 	if err != nil {
 		return Netplan{}, err
 	}
 
-	fmt.Println(string(b))
-
+	// unmarshal yaml to struct
 	np := Netplan{}
-
 	err = yaml.Unmarshal(b, &np)
 	if err != nil {
 		return Netplan{}, err
 	}
 
-	return np, err
+	// return struct
+	return np, nil
 }
 
 // WriteDefaultConfig writes a default netplan yaml config with dchp4 enabled for all detected interfaces
