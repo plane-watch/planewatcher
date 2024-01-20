@@ -2,6 +2,7 @@ package webui
 
 import (
 	_ "embed"
+	"encoding/hex"
 	"firstboot/lib/netplan"
 	"fmt"
 	"html/template"
@@ -84,7 +85,11 @@ func handleNetworkConfig(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		fmt.Println(addrs[0].Mask)
+		a, _ := hex.DecodeString(addrs[0].Mask.String()[0:2])
+		b, _ := hex.DecodeString(addrs[0].Mask.String()[2:4])
+		c, _ := hex.DecodeString(addrs[0].Mask.String()[4:6])
+		d, _ := hex.DecodeString(addrs[0].Mask.String()[6:])
+		fmt.Println(a, b, c, d)
 
 		nc.Interface[iface] = netiface{
 			IPv4Addr: addrs[0].IP.String(),
