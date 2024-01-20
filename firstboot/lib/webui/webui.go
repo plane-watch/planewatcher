@@ -188,7 +188,12 @@ func handleNetworkPOST(w http.ResponseWriter, r *http.Request) {
 		}
 
 		newIntConf.Addresses = []string{fmt.Sprintf("%s/%s", ip, strings.Split(addr.String(), "/")[1])}
-		newIntConf.Gateway4 = gw.String()
+		newIntConf.Routes = []netplan.Route{
+			{
+				To:  "default",
+				Via: gw.String(),
+			},
+		}
 
 		// TODO: DNS
 
