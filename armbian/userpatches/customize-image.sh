@@ -88,6 +88,7 @@ mkdir -p /opt/pilot
 cp -v /tmp/overlay/pilot /opt/pilot/pilot
 chmod a+x /opt/pilot/pilot
 cp -v /tmp/overlay/pilot.service /etc/systemd/system/pilot.service
+systemctl enable pilot
 
 # switch from NetworkManager to systemd-networkd
 systemctl stop NetworkManager
