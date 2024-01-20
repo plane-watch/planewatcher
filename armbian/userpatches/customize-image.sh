@@ -87,6 +87,7 @@ apt-get install --no-install-recommends -y isc-dhcp-client
 mkdir -p /opt/pilot
 cp -v /tmp/overlay/pilot /opt/pilot/pilot
 chmod a+x /opt/pilot/pilot
+cp -v /tmp/overlay/pilot.service /etc/systemd/system/pilot.service
 
 # switch from NetworkManager to systemd-networkd
 systemctl stop NetworkManager
