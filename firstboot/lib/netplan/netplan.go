@@ -1,11 +1,13 @@
 package netplan
 
 import (
+	"errors"
 	"fmt"
 	"io"
 	"net"
 	"os"
 	"os/exec"
+	"time"
 
 	"github.com/rs/zerolog/log"
 	"github.com/vishvananda/netlink"
@@ -52,6 +54,10 @@ type Nameservers struct {
 	Search    []string `yaml:"search,omitempty,flow"`
 	Addresses []string `yaml:"addresses,omitempty,flow"`
 }
+
+var (
+	ErrConfirmationTimeout = errors.New("timeout while waiting for confirmation")
+)
 
 func Load(filename string) (Netplan, error) {
 	f, err := os.Open(filename)
@@ -202,30 +208,154 @@ func ApplyImmediate() error {
 	return nil
 }
 
-// c := exec.Command("netplan", "try")
-// stdin, err := c.StdinPipe()
-// if err != nil {
-// 	panic(err)
-// }
-// stdout, err := c.StdoutPipe()
-// if err != nil {
-// 	panic(err)
-// }
+// ApplyImmediate runs `netplan apply`
+func ApplyWithConfirmation(timeoutSecs uint) (confirmFunc func() error) {
 
-// err = c.Start()
-// if err != nil {
-// 	panic(err)
-// }
-// time.Sleep(5 * time.Second)
-// _, err = stdin.Write([]byte("\n"))
-// if err != nil {
-// 	panic(err)
-// }
-// b, err := io.ReadAll(stdout)
-// if err != nil {
-// 	panic(err)
-// }
-// err = c.Wait()
-// if err != nil {
-// 	panic(err)
-// }
+	// prep output struct
+	type output struct {
+		bStdout, bStderr []byte
+		err              error
+	}
+
+	// prep channels
+	confirmChan := make(chan bool)
+	outputChan := make(chan output)
+
+	// prep output func
+	confirmFunc = func() error {
+		// send confirmation
+		confirmChan <- true
+
+		// get output
+		o := <-outputChan
+
+		// log context
+		log := log.
+			With().
+			Str("stdout", string(o.bStdout)).
+			Str("stderr", string(o.bStderr)).
+			Logger()
+
+		// log & return any errors
+		if o.err != nil {
+			log.Err(o.err).Msg("error")
+		}
+		return o.err
+	}
+
+	// run "netplan try" with timeout
+	go func() {
+
+		o := output{}
+
+		// prepare command
+		c := exec.Command("netplan", "try", "--timeout", fmt.Sprintf("%d", timeoutSecs))
+
+		log := log.With().Str("cmd", c.String()).Logger()
+
+		// prepare stdin, stdout & stderr
+		stdin, err := c.StdinPipe()
+		if err != nil {
+			log.Err(err).Msg("error opening stdin pipe")
+			o.err = err
+			outputChan <- o
+			return
+		}
+		stderr, err := c.StderrPipe()
+		if err != nil {
+			log.Err(err).Msg("error opening stderr pipe")
+			o.err = err
+			outputChan <- o
+			return
+		}
+		stdout, err := c.StdoutPipe()
+		if err != nil {
+			log.Err(err).Msg("error opening stdout pipe")
+			o.err = err
+			outputChan <- o
+			return
+		}
+
+		// start process
+		err = c.Start()
+		if err != nil {
+			log.Err(err).Msg("error starting process")
+			o.err = err
+			outputChan <- o
+			return
+		}
+
+		// wait for confirmation or timeout
+		select {
+
+		// handle timeout
+		case <-time.After(time.Second * time.Duration(timeoutSecs)):
+
+			// read stdout & stderr
+			bStdout, err := io.ReadAll(stdout)
+			if err != nil {
+				log.Err(err).Msg("error reading stdout")
+				o.err = err
+				outputChan <- o
+				return
+			}
+			log = log.With().Str("stdout", string(bStdout)).Logger()
+			bStderr, err := io.ReadAll(stderr)
+			if err != nil {
+				log.Err(err).Msg("error reading stderr")
+				o.err = err
+				outputChan <- o
+				return
+			}
+			log = log.With().Str("stderr", string(bStderr)).Logger()
+			log.Warn().Msg("did not receive confirmation, netplan will revert")
+			o.err = ErrConfirmationTimeout
+			outputChan <- o
+			return
+
+		// wait for confirm
+		case <-confirmChan:
+			log.Debug().Msg("received confirmation")
+		}
+
+		// send ENTER to confirm
+		_, err = stdin.Write([]byte("\n"))
+		if err != nil {
+			log.Err(err).Msg("error sending ENTER to confirm")
+			o.err = err
+			outputChan <- o
+			return
+		}
+
+		// read stdout & stderr
+		bStdout, err := io.ReadAll(stdout)
+		if err != nil {
+			log.Err(err).Msg("error reading stdout")
+			o.err = err
+			outputChan <- o
+			return
+		}
+		log = log.With().Str("stdout", string(bStdout)).Logger()
+		bStderr, err := io.ReadAll(stderr)
+		if err != nil {
+			log.Err(err).Msg("error reading stderr")
+			o.err = err
+			outputChan <- o
+			return
+		}
+		log = log.With().Str("stderr", string(bStderr)).Logger()
+
+		// wait for execution to finish
+		err = c.Wait()
+		if err != nil {
+			log.Err(err).Msg("error running netplan apply")
+			o.err = err
+			outputChan <- o
+			return
+		}
+
+		log.Debug().Msg("ran netplan apply")
+	}()
+
+	return confirmFunc
+}
