@@ -3,6 +3,7 @@ package webui
 import (
 	_ "embed"
 	"firstboot/lib/netplan"
+	"fmt"
 	"html/template"
 	"net/http"
 
@@ -82,6 +83,8 @@ func handleNetworkConfig(w http.ResponseWriter, r *http.Request) {
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
+
+		fmt.Println(addrs[0].Mask)
 
 		nc.Interface[iface] = netiface{
 			IPv4Addr: addrs[0].IP.String(),
