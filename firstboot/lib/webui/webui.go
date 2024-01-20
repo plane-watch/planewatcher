@@ -4,8 +4,8 @@ import (
 	_ "embed"
 	"encoding/hex"
 	"firstboot/lib/netplan"
-	"fmt"
 	"html/template"
+	"net"
 	"net/http"
 
 	"github.com/rs/zerolog/log"
@@ -89,11 +89,10 @@ func handleNetworkConfig(w http.ResponseWriter, r *http.Request) {
 		b, _ := hex.DecodeString(addrs[0].Mask.String()[2:4])
 		c, _ := hex.DecodeString(addrs[0].Mask.String()[4:6])
 		d, _ := hex.DecodeString(addrs[0].Mask.String()[6:])
-		fmt.Println(a, b, c, d)
 
 		nc.Interface[iface] = netiface{
 			IPv4Addr: addrs[0].IP.String(),
-			IPv4Mask: addrs[0].Mask.String(),
+			IPv4Mask: net.IPv4Mask(a[0], b[0], c[0], d[0]).String(),
 		}
 
 	}
