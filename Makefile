@@ -9,6 +9,10 @@ uefi-x86-ovf:
 	if [ ! -d "./armbian-build" ]; then git clone --depth=1 --branch=v23.11 https://github.com/armbian/build ./armbian-build; fi
 	$(info Copy armbian customisations)
 	cp -Rv ./armbian/* ./armbian-build/
+	$(info Build 'pilot' app)
+	mkdir -p ./armbian-build/userpatches/overlay
+	cd ./pilot && GOOS=linux GOARCH=amd64 go build -o ../armbian-build/userpatches/overlay/pilot ./cmd/pilot 
+	cp -v ./pilot/pilot.service ./armbian-build/userpatches/overlay/pilot.service
 	$(info Run armbian build)
 	cd ./armbian-build && ./compile.sh build BOARD=uefi-x86 ENABLE_EXTENSIONS=image-output-ovf planewatcher
 

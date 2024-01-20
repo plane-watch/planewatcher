@@ -1,0 +1,90 @@
+package main
+
+import (
+	"net"
+	"os"
+
+	"github.com/vishvananda/netlink"
+)
+
+// isLoopback returns true if nf has net.FlagLoopback bit set
+func isLoopback(nf net.Flags) bool {
+	if nf&net.FlagLoopback == net.FlagLoopback { // bitwise AND to check for loopback
+		return true
+	} else {
+		return false
+	}
+}
+
+// returns a list of network devices (excludes loopback and bridge etc)
+func GetNetworkDevices() ([]netlink.Link, error) {
+
+	// get list if network interfaces
+	ll, err := netlink.LinkList()
+	if err != nil {
+		return []netlink.Link{}, err
+	}
+
+	// remove loopback
+	llDevicesOnly := []netlink.Link{}
+	for _, l := range ll {
+		if l.Type() == "device" {
+			llDevicesOnly = append(llDevicesOnly, l)
+		}
+	}
+
+	// return sanitised list
+	return llDevicesOnly, nil
+}
+
+func generateNetplanConfig() error {
+
+	// check for presence of netplan yml
+	contents, err := os.ReadDir("/etc/netplan/")
+	if err != nil {
+		return err
+	}
+
+	// if no netplan files...
+	if len(contents) == 0 {
+
+		// open netplan config
+		f, err := os.Open("/etc/netplan/planewatcher.yaml")
+		if err != nil {
+			return err
+		}
+
+		// write header
+		_, err = f.WriteString("network:")
+		if err != nil {
+			return err
+		}
+		_, err = f.WriteString("  version: 2")
+		if err != nil {
+			return err
+		}
+		_, err = f.WriteString("  ethernets:")
+		if err != nil {
+			return err
+		}
+
+		// get network devices
+		networkDevs, err := GetNetworkDevices()
+		if err != nil {
+			return err
+		}
+
+		for _, dev := range networkDevs {
+
+			if isLoopback(dev.Flags) {
+
+			}
+
+		}
+
+	}
+}
+
+func main() {
+
+}
