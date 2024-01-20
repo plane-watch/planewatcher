@@ -168,8 +168,8 @@ func (conf *WebUI) Run() {
 
 	netplanFile = conf.NetplanFile
 
-	// handle requests to network config page
-
+	// handle requests
+	http.HandleFunc("/", handleIndex)
 	http.HandleFunc("/network", handleNetwork)
 
 	err = http.ListenAndServe(conf.ListenAddr, nil)
