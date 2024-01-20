@@ -78,7 +78,7 @@ func handleNetwork(w http.ResponseWriter, r *http.Request) {
 }
 
 func handleNetworkPOST(w http.ResponseWriter, r *http.Request) {
-	// var err error
+	var err error
 
 	reqTime := time.Now()
 
@@ -89,9 +89,16 @@ func handleNetworkPOST(w http.ResponseWriter, r *http.Request) {
 		Str("method", r.Method).
 		Logger()
 
+	err = r.ParseForm()
+	if err != nil {
+		log.Err(err).Msg("error parsing form")
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
 	// generate netplan yaml
-	if r.Form.Has("ipv4.method") {
-		fmt.Println("ipv4.method", r.Form.Get("ipv4.method"))
+	if r.PostForm.Has("ipv4.method") {
+		fmt.Println("ipv4.method", r.PostForm.Get("ipv4.method"))
 	}
 
 	log.Debug().TimeDiff("rtt", time.Now(), reqTime).Msg("webui request")
