@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"firstboot/lib/netplan"
+	"firstboot/lib/webui"
 
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
@@ -37,11 +38,18 @@ func main() {
 		}
 	}
 
-	// test
-	confirm := netplan.ApplyWithConfirmation(60)
-	time.Sleep(time.Second * 3)
-	err := confirm()
-	if err != nil {
-		panic(err)
+	// // test
+	// confirm := netplan.ApplyWithConfirmation(60)
+	// time.Sleep(time.Second * 3)
+	// err := confirm()
+	// if err != nil {
+	// 	panic(err)
+	// }
+
+	webUI := webui.WebUIConfig{
+		ListenAddr:  ":80",
+		NetplanFile: netplanFile,
 	}
+	webUI.Run()
+
 }

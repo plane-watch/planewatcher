@@ -60,6 +60,7 @@ var (
 	ErrTimeout             = errors.New("timeout")
 )
 
+// Load loads a netplan yaml file into a Netplan struct
 func Load(filename string) (Netplan, error) {
 	f, err := os.Open(filename)
 	if err != nil {
