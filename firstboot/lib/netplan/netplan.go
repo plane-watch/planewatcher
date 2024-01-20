@@ -57,6 +57,7 @@ type Nameservers struct {
 
 var (
 	ErrConfirmationTimeout = errors.New("timeout while waiting for confirmation")
+	ErrTimeout             = errors.New("timeout")
 )
 
 func Load(filename string) (Netplan, error) {
@@ -223,11 +224,18 @@ func ApplyWithConfirmation(timeoutSecs uint) (confirmFunc func() error) {
 
 	// prep output func
 	confirmFunc = func() error {
+		var o output
+
 		// send confirmation
 		confirmChan <- true
 
-		// get output
-		o := <-outputChan
+		// get output or timeout
+		select {
+		case <-time.After(time.Second):
+			log.Err(ErrTimeout).Msg("timeout recv from outputChan")
+			return ErrTimeout
+		case o = <-outputChan:
+		}
 
 		// log context
 		log := log.
