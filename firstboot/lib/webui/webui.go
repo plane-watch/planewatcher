@@ -15,11 +15,16 @@ import (
 )
 
 var (
-	//go:embed netconfig.html
-	tmplNetworkConfigHTML string
 
-	// html template for network config
-	tmplNetworkConfig *template.Template
+	// html template for / (index)
+	//go:embed index.html
+	tmplIndexHTML string
+	tmplIndex     = template.Must(template.New("index").Parse(tmplIndexHTML))
+
+	// html template for /network
+	//go:embed network.html
+	tmplNetworkHTML string
+	tmplNetwork     = template.Must(template.New("network").Parse(tmplNetworkHTML))
 
 	// netplan yaml file path
 	netplanFile string
@@ -40,7 +45,29 @@ type WebUI struct {
 	NetplanFile string
 }
 
-func handleNetworkConfig(w http.ResponseWriter, r *http.Request) {
+func handleIndex(w http.ResponseWriter, r *http.Request) {
+	var err error
+
+	reqTime := time.Now()
+
+	log := log.With().
+		Str("netplan_yaml", netplanFile).
+		Str("uri", r.RequestURI).
+		Str("src", r.RemoteAddr).
+		Str("method", r.Method).
+		Logger()
+
+	err = tmplNetwork.Execute(w, nil)
+	if err != nil {
+		log.Err(err).Msg("error executing template")
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	log.Debug().TimeDiff("rtt", time.Now(), reqTime).Msg("webui request")
+}
+
+func handleNetwork(w http.ResponseWriter, r *http.Request) {
 	var err error
 
 	reqTime := time.Now()
@@ -125,7 +152,7 @@ func handleNetworkConfig(w http.ResponseWriter, r *http.Request) {
 
 	}
 
-	err = tmplNetworkConfig.Execute(w, nc)
+	err = tmplNetwork.Execute(w, nc)
 	if err != nil {
 		log.Err(err).Msg("error executing template")
 		w.WriteHeader(http.StatusInternalServerError)
@@ -142,11 +169,8 @@ func (conf *WebUI) Run() {
 	netplanFile = conf.NetplanFile
 
 	// handle requests to network config page
-	tmplNetworkConfig, err = template.New("NetworkConfig").Parse(tmplNetworkConfigHTML)
-	if err != nil {
-		panic(err)
-	}
-	http.HandleFunc("/", handleNetworkConfig)
+
+	http.HandleFunc("/network", handleNetwork)
 
 	err = http.ListenAndServe(conf.ListenAddr, nil)
 	if err != nil {
