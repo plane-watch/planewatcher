@@ -5,11 +5,7 @@
 <h2>Network Config</h2>
 
 <a href="/">Back to main menu</a>
-
   {{ range $if_name, $if_config := .Netplan.Network.Ethernets }}
-
-<p>{{with (index $.Interface $if_name)}}{{.DHCPv4}}{{end}}</p>
-
   <fieldset>
     <form action="/network" method="post">
       <label>Interface: {{ $if_name }}</label><br>
@@ -17,10 +13,13 @@
       <fieldset>
         <label>IPv4</label><br>
         <input type="radio" id="dhcpv4" name="ipv4.method" value="DHCP" {{with (index $.Interface $if_name)}}{{if .DHCPv4}}checked="checked"{{end}}{{end}}>
+        
+        <!-- DHCP -->
         <label for="dhcpv4">DHCP</label><br>
         <input type="radio" id="manualv4" name="ipv4.method" value="Manual" {{with (index $.Interface $if_name)}}{{if not .DHCPv4}}checked="checked"{{end}}{{end}}>
+        
+        <!-- Manual -->
         <label for="manualv4">Manual</label><br>
-
         <label for="ipv4addr">Address</label>
         <input type="text" id="ipv4addr" name="ipv4.address" value="{{with (index $.Interface $if_name)}}{{.IPv4Addr}}{{end}}"><br>
         <label for="ipv4mask">Netmask</label>
