@@ -28,9 +28,18 @@ var (
 	tmplNetworkHTML string
 	tmplNetwork     = template.Must(template.New("network").Parse(tmplNetworkHTML))
 
+	// html template for /network
+	//go:embed network.html
+	tmplNetworkRedirectHTML string
+	tmplNetworkRedirect     = template.Must(template.New("network_redirect").Parse(tmplNetworkRedirectHTML))
+
 	// netplan yaml file path
 	netplanFile string
 )
+
+type redirect struct {
+	NewUrl string
+}
 
 type networkConfig struct {
 	Netplan   netplan.Netplan
@@ -203,12 +212,19 @@ func handleNetworkPOST(w http.ResponseWriter, r *http.Request) {
 		newUrl = fmt.Sprintf("http://%s:%s/network", ip, r.URL.Port())
 	}
 
-	// redirect client
-	http.Redirect(w, r, newUrl, http.StatusSeeOther)
+	rd := redirect{
+		NewUrl: newUrl,
+	}
+	err = tmplNetworkRedirect.Execute(w, rd)
+	if err != nil {
+		log.Err(err).Msg("error executing template")
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
 
 	// apply netplan yaml
 	go func() {
-		time.Sleep(time.Microsecond * 500)
+		time.Sleep(time.Microsecond * 2500)
 		err := netplan.ApplyImmediate()
 		if err != nil {
 			log.Err(err).Msg("error applying netplan config")

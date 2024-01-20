@@ -38,14 +38,6 @@ func main() {
 		}
 	}
 
-	// // test
-	// confirm := netplan.ApplyWithConfirmation(60)
-	// time.Sleep(time.Second * 3)
-	// err := confirm()
-	// if err != nil {
-	// 	panic(err)
-	// }
-
 	webUI := webui.WebUI{
 		ListenAddr:  ":80",
 		NetplanFile: netplanFile,
