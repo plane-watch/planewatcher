@@ -258,8 +258,8 @@ func ApplyWithConfirmation(timeoutSecs uint) (confirmFunc func() error) {
 
 		// prepare command
 		c := exec.Command("netplan", "try", "--timeout", fmt.Sprintf("%d", timeoutSecs))
-
 		log := log.With().Str("cmd", c.String()).Logger()
+		log.Debug().Msg("preparing to run process")
 
 		// prepare stdin, stdout & stderr
 		stdin, err := c.StdinPipe()
