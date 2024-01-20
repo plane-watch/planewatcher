@@ -12,7 +12,7 @@
       <label>Interface: {{ $if_name.DHCP4 }}</label><br>
       <input type="hidden" id="iface" name="iface" value="{{ $if_name }}">
       <fieldset>
-        <p>{{ $if_config }}</p>
+        <p>{{ if $if_config.DHCP4 }}true{{ else }}false{{ end }}</p>
         <label>IPv4</label><br>
         <input type="radio" id="dhcpv4" name="ipv4.method" value="DHCP"{{ if $if_config.DHCP4 }} checked="checked"{{end}}>
         <label for="dhcpv4">DHCP</label><br>
