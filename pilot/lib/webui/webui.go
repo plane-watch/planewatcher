@@ -192,6 +192,7 @@ func handleNetworkPOST(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
+		// add ip & default gw to interface config
 		newIntConf.Addresses = []string{fmt.Sprintf("%s/%s", ip, strings.Split(addr.String(), "/")[1])}
 		newIntConf.Routes = []netplan.Route{
 			{
@@ -200,6 +201,7 @@ func handleNetworkPOST(w http.ResponseWriter, r *http.Request) {
 			},
 		}
 
+		// add dns info to interface config
 		newIntConf.Nameservers = netplan.Nameservers{
 			Search:    strings.Fields(r.PostForm.Get("searchlist")),
 			Addresses: strings.Fields(r.PostForm.Get("nameservers")),
@@ -363,7 +365,7 @@ func handleNetworkGET(w http.ResponseWriter, r *http.Request) {
 
 	}
 
-	// get dns info from running config
+	// open resolv.conf for reading
 	file, err := os.Open("/etc/resolv.conf")
 	if err != nil {
 		log.Err(err).Msg("couldn't open /etc/resolv.conf")
@@ -372,6 +374,7 @@ func handleNetworkGET(w http.ResponseWriter, r *http.Request) {
 	}
 	defer file.Close()
 
+	// get dns info from running config
 	nameservers := []string{}
 	search := []string{}
 	scanner := bufio.NewScanner(file)
@@ -386,15 +389,18 @@ func handleNetworkGET(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	// store dns info
 	nc.Nameservers = strings.Join(nameservers, " ")
 	nc.Search = strings.Join(search, " ")
 
+	// deal with scanner errors
 	if err := scanner.Err(); err != nil {
 		log.Err(err).Msg("couldn't open /etc/resolv.conf")
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
+	// execute config
 	err = tmplNetwork.Execute(w, nc)
 	if err != nil {
 		log.Err(err).Msg("error executing template")
