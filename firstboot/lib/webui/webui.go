@@ -92,7 +92,7 @@ func handleNetworkConfig(w http.ResponseWriter, r *http.Request) {
 
 		nc.Interface[iface] = netiface{
 			IPv4Addr: addrs[0].IP.String(),
-			IPv4Mask: net.IPv4Mask(a[0], b[0], c[0], d[0]).String(),
+			IPv4Mask: net.IPv4(a[0], b[0], c[0], d[0]).String(),
 		}
 
 	}
