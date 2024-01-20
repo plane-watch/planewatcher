@@ -299,7 +299,7 @@ func ApplyWithConfirmation(timeoutSecs uint) (confirmFunc func() error) {
 		// handle timeout
 		case <-time.After(time.Second * time.Duration(timeoutSecs)):
 
-			// read stdout & stderr
+			// read stdout
 			bStdout, err := io.ReadAll(stdout)
 			if err != nil {
 				log.Err(err).Msg("error reading stdout")
@@ -308,6 +308,9 @@ func ApplyWithConfirmation(timeoutSecs uint) (confirmFunc func() error) {
 				return
 			}
 			log = log.With().Str("stdout", string(bStdout)).Logger()
+			o.bStdout = bStdout
+
+			// read stderr
 			bStderr, err := io.ReadAll(stderr)
 			if err != nil {
 				log.Err(err).Msg("error reading stderr")
@@ -316,6 +319,9 @@ func ApplyWithConfirmation(timeoutSecs uint) (confirmFunc func() error) {
 				return
 			}
 			log = log.With().Str("stderr", string(bStderr)).Logger()
+			o.bStderr = bStderr
+
+			// return error via chan
 			log.Warn().Msg("did not receive confirmation, netplan will revert")
 			o.err = ErrConfirmationTimeout
 			outputChan <- o
@@ -335,7 +341,7 @@ func ApplyWithConfirmation(timeoutSecs uint) (confirmFunc func() error) {
 			return
 		}
 
-		// read stdout & stderr
+		// read stdout
 		bStdout, err := io.ReadAll(stdout)
 		if err != nil {
 			log.Err(err).Msg("error reading stdout")
@@ -344,6 +350,9 @@ func ApplyWithConfirmation(timeoutSecs uint) (confirmFunc func() error) {
 			return
 		}
 		log = log.With().Str("stdout", string(bStdout)).Logger()
+		o.bStdout = bStdout
+
+		// read stderr
 		bStderr, err := io.ReadAll(stderr)
 		if err != nil {
 			log.Err(err).Msg("error reading stderr")
@@ -352,17 +361,20 @@ func ApplyWithConfirmation(timeoutSecs uint) (confirmFunc func() error) {
 			return
 		}
 		log = log.With().Str("stderr", string(bStderr)).Logger()
+		o.bStderr = bStderr
 
 		// wait for execution to finish
 		err = c.Wait()
 		if err != nil {
-			log.Err(err).Msg("error running netplan apply")
+			log.Err(err).Msg("error running process")
 			o.err = err
 			outputChan <- o
 			return
 		}
 
-		log.Debug().Msg("ran netplan apply")
+		log.Debug().Msg("ran process")
+		o.err = nil
+		outputChan <- o
 	}()
 
 	return confirmFunc
