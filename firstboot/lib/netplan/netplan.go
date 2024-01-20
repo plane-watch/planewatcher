@@ -202,7 +202,7 @@ func ApplyImmediate() error {
 		log.Err(err).Msg("error running netplan apply")
 		return err
 	}
-	log.Debug().Msg("ran netplan apply")
+	log.Debug().Msg("netplan apply succeeded")
 	return nil
 }
 
