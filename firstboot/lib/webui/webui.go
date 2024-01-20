@@ -56,6 +56,7 @@ func handleIndex(w http.ResponseWriter, r *http.Request) {
 		Str("uri", r.RequestURI).
 		Str("src", r.RemoteAddr).
 		Str("method", r.Method).
+		Str("referrer", r.Referer()).
 		Logger()
 
 	err = tmplIndex.Execute(w, nil)
@@ -87,6 +88,7 @@ func handleNetworkPOST(w http.ResponseWriter, r *http.Request) {
 		Str("uri", r.RequestURI).
 		Str("src", r.RemoteAddr).
 		Str("method", r.Method).
+		Str("referrer", r.Referer()).
 		Logger()
 
 	err = r.ParseForm()
@@ -97,7 +99,7 @@ func handleNetworkPOST(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// generate netplan yaml
-	_, err = netplan.Load(netplanFile)
+	np, err := netplan.Load(netplanFile)
 	if err != nil {
 		log.Err(err).Msg("error loading netplan yaml")
 		w.WriteHeader(http.StatusInternalServerError)
@@ -105,12 +107,96 @@ func handleNetworkPOST(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// determine interface to update
-	if r.PostForm.Has("iface") {
-		fmt.Println("iface", r.PostForm.Get("iface"))
+	log = log.With().Str("iface", r.PostForm.Get("iface")).Logger()
+	_, ok := np.Network.Ethernets[r.PostForm.Get("iface")]
+	if !ok {
+		log.Err(err).Msg("interface not found")
+		w.WriteHeader(http.StatusBadRequest)
+		return
 	}
 
-	if r.PostForm.Has("ipv4.method") {
-		fmt.Println("ipv4.method", r.PostForm.Get("ipv4.method"))
+	newIntConf := netplan.Interface{}
+
+	// depending on method...
+	log = log.With().Str("ipv4.method", r.PostForm.Get("ipv4.method")).Logger()
+	switch r.PostForm.Get("ipv4.method") {
+
+	// if dhcp, then we just enable dhcp and that's it
+	case "DHCP":
+		newIntConf.DHCP4 = &netplan.True
+
+	// if manual, a bit more complicated
+	case "Manual":
+		// disable dhcp
+		newIntConf.DHCP4 = &netplan.False
+
+		// check ipv4.address validity
+		ip := net.ParseIP(r.PostForm.Get("ipv4.address"))
+		log = log.With().Str("ipv4.address", ip.String()).Logger()
+		if ip == nil {
+			log.Err(err).Msg("invalid ipv4.address")
+			w.WriteHeader(http.StatusBadRequest)
+			return
+		}
+
+		// check ipv4.netmask validity
+		mask := net.ParseIP(r.PostForm.Get("ipv4.netmask"))
+		log = log.With().Str("ipv4.netmask", ip.String()).Logger()
+		if mask == nil {
+			log.Err(err).Msg("invalid ipv4.netmask")
+			w.WriteHeader(http.StatusBadRequest)
+			return
+		}
+		mask4 := mask.To4()
+		maskSz, _ := net.IPv4Mask(mask4[0], mask4[1], mask4[2], mask4[3]).Size()
+
+		// get cidr notation for netplan
+		_, addr, err := net.ParseCIDR(fmt.Sprintf("%s/%d", ip.String(), maskSz))
+		if err != nil {
+			log.Err(err).Msg("could not parse cidr")
+			w.WriteHeader(http.StatusBadRequest)
+			return
+		}
+		log = log.With().Str("ipv4.cidr", addr.String()).Logger()
+
+		// check ipv4.gateway validity
+		gw := net.ParseIP(r.PostForm.Get("ipv4.gateway"))
+		log = log.With().Str("ipv4.gateway", ip.String()).Logger()
+		if gw == nil {
+			log.Err(err).Msg("invalid ipv4.gateway")
+			w.WriteHeader(http.StatusBadRequest)
+			return
+		}
+
+		newIntConf.Addresses = []string{addr.String()}
+		newIntConf.Gateway4 = gw.String()
+
+		// TODO: DNS
+
+	default:
+		log.Err(err).Msg("unknown ipv4.method")
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	// update netplan file
+	np.Network.Ethernets[r.PostForm.Get("iface")] = netplan.Ethernet{newIntConf}
+
+	// save netplan yaml
+	log = log.With().Str("filename", netplanFile).Logger()
+	err = np.Save(netplanFile)
+	if err != nil {
+		log.Err(err).Msg("error writing netplan file")
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	// apply netplan yaml
+	err = netplan.ApplyImmediate()
+	if err != nil {
+		log.Err(err).Msg("error applying netplan config")
+		w.WriteHeader(http.StatusInternalServerError)
+		return
 	}
 
 	log.Debug().TimeDiff("rtt", time.Now(), reqTime).Msg("webui request")
@@ -127,6 +213,7 @@ func handleNetworkGET(w http.ResponseWriter, r *http.Request) {
 		Str("uri", r.RequestURI).
 		Str("src", r.RemoteAddr).
 		Str("method", r.Method).
+		Str("referrer", r.Referer()).
 		Logger()
 
 	// prep network config

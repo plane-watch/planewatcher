@@ -56,6 +56,9 @@ type Nameservers struct {
 }
 
 var (
+	True  = bool(true)
+	False = bool(false)
+
 	ErrConfirmationTimeout = errors.New("timeout while waiting for confirmation")
 	ErrTimeout             = errors.New("timeout")
 )
@@ -86,18 +89,45 @@ func Load(filename string) (Netplan, error) {
 	return np, nil
 }
 
-// WriteDefaultConfig writes a default netplan yaml config with dchp4 enabled for all detected interfaces
-func DefaultConfig(filename string) error {
+// Saves a Netplan object as YAML file filename
+func (np *Netplan) Save(filename string) error {
 
-	// open netlink file
+	log := log.With().Str("filename", filename).Logger()
+
+	// open netplan file
 	f, err := os.Create(filename)
 	if err != nil {
 		return err
 	}
 	defer f.Close()
 
+	// marshall netplan obj to yaml
+	out, err := yaml.Marshal(&np)
+	if err != nil {
+		return err
+	}
+
+	// write output
+	_, err = f.Write(out)
+	if err != nil {
+		return err
+	}
+	log.Info().Msg("wrote new netplan yaml")
+
+	// chmod
+	err = os.Chmod(filename, 0600)
+	if err != nil {
+		return err
+	}
+	log.Debug().Msg("chmodded netplan yaml to 0600")
+
+	return nil
+}
+
+// WriteDefaultConfig writes a default netplan yaml config with dchp4 enabled for all detected interfaces
+func DefaultConfig(filename string) error {
+
 	// prep vars
-	yes := true
 	eths := make(map[string]Ethernet)
 
 	// get ip link list
@@ -115,7 +145,7 @@ func DefaultConfig(filename string) error {
 				// add interface
 				eths[l.Attrs().Name] = Ethernet{
 					Interface: Interface{
-						DHCP4: &yes,
+						DHCP4: &True,
 					},
 				}
 			}
@@ -131,25 +161,13 @@ func DefaultConfig(filename string) error {
 		},
 	}
 
-	// marshall netplan obj to yaml
-	out, err := yaml.Marshal(&np)
+	// save netplan file
+	err = np.Save(filename)
 	if err != nil {
 		return err
 	}
 
-	// write output
-	_, err = f.Write(out)
-	if err != nil {
-		return err
-	}
-
-	// chmod
-	err = os.Chmod(filename, 0600)
-	if err != nil {
-		return err
-	}
-
-	// apply
+	// apply netplan config
 	err = ApplyImmediate()
 	if err != nil {
 		return err
