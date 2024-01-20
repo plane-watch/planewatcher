@@ -5,7 +5,7 @@
 <h2>Network Config</h2>
 
 <form>
-  {{ range $iface_name, $iface_config := .Ethernets }}
+  {{ range $iface_name, $iface_config := .Network.Ethernets }}
   <fieldset>
     <label>Interface: {{ $iface_name }}</label><br>
 
