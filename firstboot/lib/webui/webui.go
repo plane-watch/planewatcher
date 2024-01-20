@@ -74,25 +74,42 @@ func handleNetworkConfig(w http.ResponseWriter, r *http.Request) {
 		}
 
 		if len(addrs) < 1 {
-			log.Err(err).Msg("no ipv4 addresses returned from netlink for interface")
+			log.Error().Msg("no ipv4 addresses returned from netlink for interface")
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
 
 		if len(addrs) > 1 {
-			log.Err(err).Msg("too many ipv4 addresses returned from netlink for interface")
+			log.Error().Msg("too many ipv4 addresses returned from netlink for interface")
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
 
+		// decode mask hex
 		a, _ := hex.DecodeString(addrs[0].Mask.String()[0:2])
 		b, _ := hex.DecodeString(addrs[0].Mask.String()[2:4])
 		c, _ := hex.DecodeString(addrs[0].Mask.String()[4:6])
 		d, _ := hex.DecodeString(addrs[0].Mask.String()[6:])
+		mask := net.IPv4(a[0], b[0], c[0], d[0]).String()
 
+		// get def gw
+		var gw string
+		_, defroute, err := net.ParseCIDR("0.0.0.0/0")
+		routes, err := netlink.RouteList(l, unix.AF_INET)
+		if err != nil {
+			log.Err(err).Msg("too many ipv4 addresses returned from netlink for interface")
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+		for _, route := range routes {
+			if route.Dst == defroute {
+				gw = route.Gw.String()
+			}
+		}
 		nc.Interface[iface] = netiface{
-			IPv4Addr: addrs[0].IP.String(),
-			IPv4Mask: net.IPv4(a[0], b[0], c[0], d[0]).String(),
+			IPv4Addr:    addrs[0].IP.String(),
+			IPv4Mask:    mask,
+			IPv4Gateway: gw,
 		}
 
 	}
