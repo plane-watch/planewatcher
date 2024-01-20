@@ -13,6 +13,8 @@ import (
 
 const (
 	netplanFile = "/etc/netplan/planewatcher.yaml"
+
+	webUIListenAddr = ":80"
 )
 
 func fileExists(filename string) bool {
@@ -29,6 +31,9 @@ func main() {
 	log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr, TimeFormat: time.UnixDate})
 	zerolog.SetGlobalLevel(zerolog.DebugLevel)
 
+	log := log.With().Str("listenAddr", webUIListenAddr).Logger()
+	log.Info().Msg("started")
+
 	// check if netplan file exists
 	if !fileExists(netplanFile) {
 		log.Debug().Str("netplan_config", netplanFile).Msg("generating firstrun config")
@@ -39,7 +44,7 @@ func main() {
 	}
 
 	webUI := webui.WebUI{
-		ListenAddr:  ":80",
+		ListenAddr:  webUIListenAddr,
 		NetplanFile: netplanFile,
 	}
 	webUI.Run()
