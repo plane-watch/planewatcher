@@ -3,11 +3,11 @@ package webui
 import (
 	_ "embed"
 	"encoding/hex"
-	"firstboot/lib/netplan"
 	"fmt"
 	"html/template"
 	"net"
 	"net/http"
+	"pilot/lib/netplan"
 	"strings"
 	"time"
 

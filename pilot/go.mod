@@ -1,4 +1,4 @@
-module firstboot
+module pilot
 
 go 1.21.4
 

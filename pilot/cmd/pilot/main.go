@@ -4,8 +4,8 @@ import (
 	"os"
 	"time"
 
-	"firstboot/lib/netplan"
-	"firstboot/lib/webui"
+	"pilot/lib/netplan"
+	"pilot/lib/webui"
 
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
