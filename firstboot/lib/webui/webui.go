@@ -97,7 +97,7 @@ func handleNetworkPOST(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// generate netplan yaml
-	np, err := netplan.Load(netplanFile)
+	_, err = netplan.Load(netplanFile)
 	if err != nil {
 		log.Err(err).Msg("error loading netplan yaml")
 		w.WriteHeader(http.StatusInternalServerError)
