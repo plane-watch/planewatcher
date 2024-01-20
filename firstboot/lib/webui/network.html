@@ -9,7 +9,7 @@
   {{ range $if_name, $if_config := .Netplan.Network.Ethernets }}
   <fieldset>
     <form action="/network" method="post">
-      <label>Interface: {{ $if_name.DHCP4 }}</label><br>
+      <label>Interface: {{ $if_name }}</label><br>
       <input type="hidden" id="iface" name="iface" value="{{ $if_name }}">
       <fieldset>
         <p>{{ if $if_config.DHCP4 }}true{{ else }}false{{ end }}</p>
