@@ -217,8 +217,18 @@ func handleNetworkPOST(w http.ResponseWriter, r *http.Request) {
 		newUrl = fmt.Sprintf("http://%s:%s/network", ip, r.URL.Port())
 	}
 
-	switch r.PostForm.Get("ipv4.method") {
+	// apply netplan yaml after short delay
+	go func() {
+		time.Sleep(time.Microsecond * 2500)
+		err := netplan.ApplyImmediate()
+		if err != nil {
+			log.Err(err).Msg("error applying netplan config")
+			return
+		}
+	}()
 
+	// return page to client
+	switch r.PostForm.Get("ipv4.method") {
 	case "Manual":
 		rd := redirect{
 			NewUrl: newUrl,
@@ -229,17 +239,6 @@ func handleNetworkPOST(w http.ResponseWriter, r *http.Request) {
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
-
-		// apply netplan yaml
-		go func() {
-			time.Sleep(time.Microsecond * 2500)
-			err := netplan.ApplyImmediate()
-			if err != nil {
-				log.Err(err).Msg("error applying netplan config")
-				return
-			}
-		}()
-
 	case "DHCP":
 		err = tmplNetworkToDHCP.Execute(w, nil)
 		if err != nil {
