@@ -83,6 +83,11 @@ function build_mictronics_readsb ()
 apt-get update -y
 apt-get install --no-install-recommends -y isc-dhcp-client
 
+# install pilot
+mkdir -p /opt/pilot
+cp -v /tmp/overlay/pilot /opt/pilot/pilot
+chmod a+x /opt/pilot/pilot
+
 # switch from NetworkManager to systemd-networkd
 systemctl stop NetworkManager
 systemctl disable NetworkManager

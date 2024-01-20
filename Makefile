@@ -10,7 +10,8 @@ uefi-x86-ovf:
 	$(info Copy armbian customisations)
 	cp -Rv ./armbian/* ./armbian-build/
 	$(info Build 'pilot' app)
-	
+	mkdir -p ./armbian-build/userpatches/overlay
+	cd ./pilot && GOOS=linux GOARCH=amd64 go build -o ../armbian-build/userpatches/overlay/pilot ./cmd/pilot 
 	$(info Run armbian build)
 	cd ./armbian-build && ./compile.sh build BOARD=uefi-x86 ENABLE_EXTENSIONS=image-output-ovf planewatcher
 
