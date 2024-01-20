@@ -105,7 +105,7 @@ func handleNetworkConfig(w http.ResponseWriter, r *http.Request) {
 		for _, route := range routes {
 			fmt.Println(route)
 			fmt.Println(route.Dst.String(), route.Gw.String())
-			if route.Dst == defroute {
+			if route.Dst == nil && route.Gw != nil {
 				gw = route.Gw.String()
 			}
 		}
