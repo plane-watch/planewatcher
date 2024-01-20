@@ -1,12 +1,14 @@
 package webui
 
 import (
+	"bufio"
 	_ "embed"
 	"encoding/hex"
 	"fmt"
 	"html/template"
 	"net"
 	"net/http"
+	"os"
 	"pilot/lib/netplan"
 	"strings"
 	"time"
@@ -49,6 +51,9 @@ type redirect struct {
 type networkConfig struct {
 	Netplan   netplan.Netplan
 	Interface map[string]netiface
+
+	Nameservers string
+	Search      string
 }
 
 type netiface struct {
@@ -283,6 +288,7 @@ func handleNetworkGET(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// get information from running config for each iface
 	for iface := range nc.Netplan.Network.Ethernets {
 		log := log.With().Str("iface", iface).Logger()
 		// get "live" network config for each interface
@@ -352,6 +358,38 @@ func handleNetworkGET(w http.ResponseWriter, r *http.Request) {
 		// add interface details
 		nc.Interface[iface] = nif
 
+	}
+
+	// get dns info from running config
+	file, err := os.Open("/etc/resolv.conf")
+	if err != nil {
+		log.Err(err).Msg("couldn't open /etc/resolv.conf")
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	defer file.Close()
+
+	nameservers := []string{}
+	search := []string{}
+	scanner := bufio.NewScanner(file)
+	for scanner.Scan() {
+		if strings.Contains(scanner.Text(), "nameserver") {
+			line := strings.Join(strings.Fields(scanner.Text()), " ")
+			nameservers = append(nameservers, strings.Split(line, " ")[1])
+		}
+		if strings.Contains(scanner.Text(), "search") {
+			line := strings.Join(strings.Fields(scanner.Text()), " ")
+			search = strings.Split(line, " ")[1:]
+		}
+	}
+
+	nc.Nameservers = strings.Join(nameservers, " ")
+	nc.Search = strings.Join(search, " ")
+
+	if err := scanner.Err(); err != nil {
+		log.Err(err).Msg("couldn't open /etc/resolv.conf")
+		w.WriteHeader(http.StatusInternalServerError)
+		return
 	}
 
 	err = tmplNetwork.Execute(w, nc)

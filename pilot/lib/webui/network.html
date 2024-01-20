@@ -27,6 +27,12 @@
         <label for="ipv4gw">Gateway</label>
         <input type="text" id="ipv4gw" name="ipv4.gateway" value="{{with (index $.Interface $if_name)}}{{.IPv4Gateway}}{{end}}"><br>
 
+        <!-- DNS -->
+        <label for="nameservers">Nameservers</label>
+        <input type="text" id="nameservers" name="nameservers" value="{{ $.Nameservers }}"><br>
+        <label for="searchlist">Search list</label>
+        <input type="text" id="searchlist" name="searchlist" value="{{ $.Search }}"><br>
+
       </fieldset>
       <input type="submit" value="Update {{ $if_name }} configuration">
     </form>
