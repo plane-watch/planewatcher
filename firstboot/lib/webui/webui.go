@@ -132,7 +132,7 @@ func handleNetworkConfig(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	log.Debug().TimeDiff("rtt", time.Now(), reqTime)
+	log.Debug().TimeDiff("rtt", time.Now(), reqTime).Msg("webui request")
 
 }
 
