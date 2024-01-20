@@ -28,10 +28,15 @@ var (
 	tmplNetworkHTML string
 	tmplNetwork     = template.Must(template.New("network").Parse(tmplNetworkHTML))
 
-	// html template for /network
-	//go:embed network.html
+	// html template for when manual ip address applied
+	//go:embed network_redirect.html
 	tmplNetworkRedirectHTML string
 	tmplNetworkRedirect     = template.Must(template.New("network_redirect").Parse(tmplNetworkRedirectHTML))
+
+	// html template for when dhcp applied
+	//go:embed network_todhcp.html
+	tmplNetworkToDHCPHTML string
+	tmplNetworkToDHCP     = template.Must(template.New("network_todhcp").Parse(tmplNetworkToDHCPHTML))
 
 	// netplan yaml file path
 	netplanFile string
@@ -212,25 +217,37 @@ func handleNetworkPOST(w http.ResponseWriter, r *http.Request) {
 		newUrl = fmt.Sprintf("http://%s:%s/network", ip, r.URL.Port())
 	}
 
-	rd := redirect{
-		NewUrl: newUrl,
-	}
-	err = tmplNetworkRedirect.Execute(w, rd)
-	if err != nil {
-		log.Err(err).Msg("error executing template")
-		w.WriteHeader(http.StatusInternalServerError)
-		return
-	}
+	switch r.PostForm.Get("ipv4.method") {
 
-	// apply netplan yaml
-	go func() {
-		time.Sleep(time.Microsecond * 2500)
-		err := netplan.ApplyImmediate()
+	case "Manual":
+		rd := redirect{
+			NewUrl: newUrl,
+		}
+		err = tmplNetworkRedirect.Execute(w, rd)
 		if err != nil {
-			log.Err(err).Msg("error applying netplan config")
+			log.Err(err).Msg("error executing template")
+			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
-	}()
+
+		// apply netplan yaml
+		go func() {
+			time.Sleep(time.Microsecond * 2500)
+			err := netplan.ApplyImmediate()
+			if err != nil {
+				log.Err(err).Msg("error applying netplan config")
+				return
+			}
+		}()
+
+	case "DHCP":
+		err = tmplNetworkToDHCP.Execute(w, nil)
+		if err != nil {
+			log.Err(err).Msg("error executing template")
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+	}
 
 	log.Debug().TimeDiff("rtt", time.Now(), reqTime).Msg("webui request")
 
