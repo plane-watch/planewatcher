@@ -338,7 +338,7 @@ func handleNetworkGET(w http.ResponseWriter, r *http.Request) {
 		}
 
 		// dhcp
-		if nc.Netplan.Network.Ethernets[iface].DHCP4 == &netplan.True {
+		if *nc.Netplan.Network.Ethernets[iface].DHCP4 == true {
 			nif.DHCPv4 = true
 		} else {
 			nif.DHCPv4 = false
