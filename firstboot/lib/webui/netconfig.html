@@ -4,7 +4,7 @@
 
 <h2>Network Config</h2>
 
-<form action="/"">
+<form action="/">
   {{ range $if_name, $if_config := .Netplan.Network.Ethernets }}
   <fieldset>
     <label>Interface: {{ $if_name }}</label><br>
