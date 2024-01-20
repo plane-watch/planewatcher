@@ -95,7 +95,6 @@ func handleNetworkConfig(w http.ResponseWriter, r *http.Request) {
 
 		// get def gw
 		var gw string
-		_, defroute, err := net.ParseCIDR("0.0.0.0/0")
 		routes, err := netlink.RouteList(l, unix.AF_INET)
 		if err != nil {
 			log.Err(err).Msg("too many ipv4 addresses returned from netlink for interface")
@@ -109,6 +108,8 @@ func handleNetworkConfig(w http.ResponseWriter, r *http.Request) {
 				gw = route.Gw.String()
 			}
 		}
+
+		// add interface details
 		nc.Interface[iface] = netiface{
 			IPv4Addr:    addrs[0].IP.String(),
 			IPv4Mask:    mask,
