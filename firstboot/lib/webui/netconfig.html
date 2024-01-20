@@ -4,7 +4,7 @@
 
 <h2>Network Config</h2>
 
-<form>
+<form action="/"">
   {{ range $if_name, $if_config := .Netplan.Network.Ethernets }}
   <fieldset>
     <label>Interface: {{ $if_name }}</label><br>
@@ -26,11 +26,7 @@
       </fieldset>
   </fieldset>
   {{ end }}
+  <input type="submit" value="Submit">
 </form>
-
-<p>Note that the form itself is not visible.</p>
-
-<p>Also note that the default width of text input fields is 20 characters.</p>
-
 </body>
 </html>
