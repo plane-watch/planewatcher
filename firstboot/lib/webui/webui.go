@@ -79,7 +79,10 @@ func handleNetwork(w http.ResponseWriter, r *http.Request) {
 }
 
 func handleNetworkPOST(w http.ResponseWriter, r *http.Request) {
-	var err error
+	var (
+		err error
+		ip  net.IP
+	)
 
 	reqTime := time.Now()
 
@@ -131,7 +134,7 @@ func handleNetworkPOST(w http.ResponseWriter, r *http.Request) {
 		newIntConf.DHCP4 = &netplan.False
 
 		// check ipv4.address validity
-		ip := net.ParseIP(r.PostForm.Get("ipv4.address"))
+		ip = net.ParseIP(r.PostForm.Get("ipv4.address"))
 		log = log.With().Str("ipv4.address", ip.String()).Logger()
 		if ip == nil {
 			log.Err(err).Msg("invalid ipv4.address")
@@ -191,13 +194,26 @@ func handleNetworkPOST(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// apply netplan yaml
-	err = netplan.ApplyImmediate()
-	if err != nil {
-		log.Err(err).Msg("error applying netplan config")
-		w.WriteHeader(http.StatusInternalServerError)
-		return
+	// generate new url
+	var newUrl string
+	if r.URL.Port() == "" {
+		newUrl = fmt.Sprintf("http://%s/network", ip)
+	} else {
+		newUrl = fmt.Sprintf("http://%s:%s/network", ip, r.URL.Port())
 	}
+
+	// redirect client
+	http.Redirect(w, r, newUrl, http.StatusSeeOther)
+
+	// apply netplan yaml
+	go func() {
+		time.Sleep(time.Microsecond * 500)
+		err := netplan.ApplyImmediate()
+		if err != nil {
+			log.Err(err).Msg("error applying netplan config")
+			return
+		}
+	}()
 
 	log.Debug().TimeDiff("rtt", time.Now(), reqTime).Msg("webui request")
 
