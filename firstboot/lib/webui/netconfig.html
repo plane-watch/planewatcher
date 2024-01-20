@@ -17,11 +17,11 @@
         <label for="manualv4">Manual</label><br>
 
         <label for="ipv4addr">Address</label>
-        <input type="text" id="ipv4addr" name="ipv4.address" value="{{with (index $.Interface $if_name)}}{{.ipv4addr}}{{end}}"><br>
+        <input type="text" id="ipv4addr" name="ipv4.address" value="{{with (index $.Interface $if_name)}}{{.IPv4Addr}}{{end}}"><br>
         <label for="ipv4mask">Netmask</label>
-        <input type="text" id="ipv4mask" name="ipv4.netmask" value="{{with (index $.Interface $if_name)}}{{.ipv4mask}}{{end}}"><br>
+        <input type="text" id="ipv4mask" name="ipv4.netmask" value="{{with (index $.Interface $if_name)}}{{.IPv4Mask}}{{end}}"><br>
         <label for="ipv4gw">Gateway</label>
-        <input type="text" id="ipv4gw" name="ipv4.gateway" value="{{with (index $.Interface $if_name)}}{{.ipv4gw}}{{end}}"><br>
+        <input type="text" id="ipv4gw" name="ipv4.gateway" value="{{with (index $.Interface $if_name)}}{{.IPv4Gateway}}{{end}}"><br>
 
       </fieldset>
   </fieldset>

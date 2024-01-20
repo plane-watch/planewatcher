@@ -28,7 +28,7 @@ type networkConfig struct {
 }
 
 type netiface struct {
-	ipv4addr, ipv4mask, ipv4gw string
+	IPv4Addr, IPv4Mask, IPv4Gateway string
 }
 
 // defines the configuration for the Web UI service
@@ -84,8 +84,8 @@ func handleNetworkConfig(w http.ResponseWriter, r *http.Request) {
 		}
 
 		nc.Interface[iface] = netiface{
-			ipv4addr: string(addrs[0].IP),
-			ipv4mask: string(addrs[0].Mask),
+			IPv4Addr: string(addrs[0].IP),
+			IPv4Mask: string(addrs[0].Mask),
 		}
 
 	}
