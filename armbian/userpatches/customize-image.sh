@@ -90,6 +90,7 @@ hostnamectl set-hostname pw
     echo "ff02::1      ip6-allnodes"
     echo "ff02::2      ip6-allrouters"
 ) > /etc/hosts
+echo pw > /etc/hostname
 
 # install prerequisites
 apt-get update -y
