@@ -1,6 +1,20 @@
 # planewatcher
 
+A work-in-progress image for plane.watch feeding hardware - the "Planewatcher".
+
+## Progress
+
+- Bootable image of Armbian: ✅
+- Installation of Docker: ✅
+- Installation of rtl-sdr: ✅
+- Installation of readsb: ✅
+- Basic web UI with ability to configure network: ✅
+- ...
+- Profit
+
 ## Versions
+
+Versions of installed libs, packages, software are as follows:
 
 | Package                                                                     | Version                                                   |
 |-----------------------------------------------------------------------------|-----------------------------------------------------------|
