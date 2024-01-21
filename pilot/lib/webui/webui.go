@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"os"
 	"pilot/lib/netplan"
+	"regexp"
 	"strings"
 	"time"
 
@@ -201,10 +202,26 @@ func handleNetworkPOST(w http.ResponseWriter, r *http.Request) {
 			},
 		}
 
-		// add dns info to interface config
-		newIntConf.Nameservers = netplan.Nameservers{
-			Search:    strings.Fields(r.PostForm.Get("searchlist")),
-			Addresses: strings.Fields(r.PostForm.Get("nameservers")),
+		// prep dns struct
+		newIntConf.Nameservers = netplan.Nameservers{}
+
+		// verify search hosts & add
+		for _, searchHost := range strings.Fields(r.PostForm.Get("searchlist")) {
+			if !validHost(searchHost) {
+				log.Warn().Msgf("skipping invalid search hostname: %s", searchHost)
+			} else {
+				newIntConf.Nameservers.Search = append(newIntConf.Nameservers.Search, searchHost)
+			}
+		}
+
+		// verify nameservers & add
+		for _, nsip := range strings.Fields(r.PostForm.Get("nameservers")) {
+			parsedIp := net.ParseIP(nsip)
+			if parsedIp == nil {
+				log.Warn().Msgf("skipping invalid nameserver: %s", nsip)
+			} else {
+				newIntConf.Nameservers.Addresses = append(newIntConf.Nameservers.Addresses, parsedIp.String())
+			}
 		}
 
 	default:
@@ -266,6 +283,15 @@ func handleNetworkPOST(w http.ResponseWriter, r *http.Request) {
 
 	log.Debug().TimeDiff("rtt", time.Now(), reqTime).Msg("webui request")
 
+}
+
+func validHost(host string) bool {
+	host = strings.Trim(host, " ")
+	re, _ := regexp.Compile(`^(([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\-]*[a-zA-Z0-9])\.)*([A-Za-z0-9]|[A-Za-z0-9][A-Za-z0-9\-]*[A-Za-z0-9])$`)
+	if re.MatchString(host) {
+		return true
+	}
+	return false
 }
 
 func handleNetworkGET(w http.ResponseWriter, r *http.Request) {
@@ -381,7 +407,8 @@ func handleNetworkGET(w http.ResponseWriter, r *http.Request) {
 	for scanner.Scan() {
 		if strings.Contains(scanner.Text(), "nameserver") {
 			line := strings.Join(strings.Fields(scanner.Text()), " ")
-			nameservers = append(nameservers, strings.Split(line, " ")[1])
+			nsip := net.ParseIP(strings.Split(line, " ")[1])
+			nameservers = append(nameservers, nsip.String())
 		}
 		if strings.Contains(scanner.Text(), "search") {
 			line := strings.Join(strings.Fields(scanner.Text()), " ")
