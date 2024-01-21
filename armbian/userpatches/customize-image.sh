@@ -94,7 +94,7 @@ echo pw > /etc/hostname
 
 # install prerequisites
 apt-get update -y
-apt-get install --no-install-recommends -y isc-dhcp-client
+apt-get install --no-install-recommends -y isc-dhcp-client openvswitch-switch-dpdk
 
 # install pilot
 mkdir -p /opt/pilot
